@@ -1,10 +1,6 @@
 const fs = require('fs');
-const TYPES = require('tedious').TYPES;
-const { executeSql } = require('../db');
+const { CONFIG } = require('../config');
 const axios = require('axios');
-const CONFIG = require('../config');
-const { parseClubFile } = require('../parsers/club_parser.js');
-const { getHistory, updateHistory } = require('../scrapers/history_scraper');
 
 async function getClubHtml(path) {
     const dotIndex = path.indexOf('.');
@@ -25,8 +21,7 @@ async function getClubHtml(path) {
         fs.writeFileSync(`html_pages/clubs/${fileName}`, file);
     }
 
-    await parseClubFile(clubId, file);
-    updateAllMembers();
+    return file;
 }
 
 function findClubFile(fileName) {
@@ -40,18 +35,18 @@ function findClubFile(fileName) {
     return null;
 }
 
-async function updateAllMembers() {
-    const memberQuery = 'SELECT DISTINCT id FROM members RIGHT JOIN entries ON members.id = entries.player';
-    const memberRes = await executeSql(memberQuery, [], 'SELECT');
-    for (let member of memberRes) await getHistory(member.id);
-}
+// async function updateAllMembers() {
+//     const memberQuery = 'SELECT DISTINCT id FROM members RIGHT JOIN entries ON members.id = entries.player';
+//     const memberRes = await executeSql(memberQuery, [], 'SELECT');
+//     for (let member of memberRes) await getHistory(member.id);
+// }
 
-async function updateParticipants(eventId) {
-    const participantQuery = 'SELECT DISTINCT player FROM entries WHERE event = @eventId';
-    const participantParams = [{ name: 'eventId', type: TYPES.BigInt, value: parseInt(eventId) }];
-    const participantRes = await executeSql(participantQuery, participantParams, 'SELECT');
-    for (let participant of participantRes) await updateHistory(participant.player);
-}
+// async function updateParticipants(eventId) {
+//     const participantQuery = 'SELECT DISTINCT player FROM entries WHERE event = @eventId';
+//     const participantParams = [{ name: 'eventId', type: TYPES.BigInt, value: parseInt(eventId) }];
+//     const participantRes = await executeSql(participantQuery, participantParams, 'SELECT');
+//     for (let participant of participantRes) await updateHistory(participant.player);
+// }
 
 
-module.exports = { getClubHtml, updateParticipants };
+module.exports = { getClubHtml };

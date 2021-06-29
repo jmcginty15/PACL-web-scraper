@@ -1,6 +1,8 @@
 const TYPES = require('tedious').TYPES;
 const { executeSql } = require('../db');
 const { getMember, updateMember } = require('../scrapers/member_scraper');
+const { getHistory, updateHistory } = require('../scrapers/history_scraper');
+const { parseHistoryFile } = require('../parsers/history_parser');
 
 class Member {
     static async insertIfNotExists(id) {
@@ -48,7 +50,7 @@ class Member {
         }
     }
 
-    static async update(id) {
+    static async insertOrUpdate(id) {
         const memberCheckQuery = 'SELECT * FROM members WHERE id = @id';
         const memberCheckParams = [{ name: 'id', type: TYPES.BigInt, value: parseInt(id) }];
         const memberRes = await executeSql(memberCheckQuery, memberCheckParams, 'SELECT');
@@ -97,6 +99,16 @@ class Member {
             msg = `Error ${errMsgQueryType} member ${id} ${member.name}`;
         }
         console.log(msg);
+    }
+
+    static async getHistory(id) {
+        const html = await getHistory(id);
+        return parseHistoryFile(html);
+    }
+
+    static async updateHistory(id) {
+        const html = await updateHistory(id);
+        return parseHistoryFile(html);
     }
 
     static async findById(id) {

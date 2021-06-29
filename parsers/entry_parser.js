@@ -1,13 +1,5 @@
-const { Entry } = require('../models/entry');
-const { Member } = require('../models/member');
-
-async function parseEntryFile(eventId, sectionNum, playerId, html) {
-    await Member.insertIfNotExists(playerId);
-
-    const entry = {};
-    entry.event = eventId;
-    entry.section = sectionNum;
-    entry.player = playerId;
+function parseEntryFile(eventId, sectionNum, playerId, html) {
+    const entry = { event: eventId, section: sectionNum, player: playerId };
     const entryRefIndex = html.indexOf(`(${playerId})`);
 
     const ratingRefIndex = html.indexOf('Rating', entryRefIndex);
@@ -36,7 +28,7 @@ async function parseEntryFile(eventId, sectionNum, playerId, html) {
     const pairingNumIndex = html.indexOf('<b>', pairingNumRefIndex) + 3;
     entry.pairingNum = html.slice(pairingNumIndex, html.indexOf('</b>', pairingNumIndex));
 
-    await Entry.insertIfNotExists(entry);
+    return entry;
 }
 
 function parseRatingChange(ratingChange) {

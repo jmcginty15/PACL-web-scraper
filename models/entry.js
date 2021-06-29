@@ -1,7 +1,19 @@
 const TYPES = require('tedious').TYPES;
 const { executeSql } = require('../db');
+const { getEntryHtml } = require('../scrapers/entry_scraper');
+const { parseEntryFile } = require('../parsers/entry_parser');
+const { parseGames } = require('../parsers/game_parser');
 
 class Entry {
+    constructor(eventId, sectionNum, playerId) {
+        this.event = eventId;
+        this.section = sectionNum;
+        this.player = playerId;
+        let pathSection = sectionNum;
+        while (pathSection.length < 3) pathSection = `0${pathSection}`;
+        this.path = `XtblPlr.php?${eventId}-${pathSection}-${playerId}`;
+    }
+
     static async insertIfNotExists({ event, section, player, pairingNum, score, ratingBefore, ratingAfter, ratingDualBefore, ratingDualAfter }) {
         const entryCheckQuery = 'SELECT * FROM entries WHERE event = @event AND section = @section AND player = @player';
         const entryCheckParams = [
@@ -11,7 +23,7 @@ class Entry {
         ];
         const entryRes = await executeSql(entryCheckQuery, entryCheckParams, 'SELECT');
 
-        if (entryRes.length === 0) {
+        if (entryRes.length === 0) {            
             const query = 'INSERT INTO entries (event, section, player, pairingNum, score, ratingBefore, ratingAfter, ratingDualBefore, ratingDualAfter) VALUES (@event, @section, @player, @pairingNum, @score, @ratingBefore, @ratingAfter, @ratingDualBefore, @ratingDualAfter)';
             const params = [
                 { name: 'event', type: TYPES.BigInt, value: parseInt(event) },
@@ -47,6 +59,26 @@ class Entry {
 
         if (entryRes.length === 0) return null;
         else return entryRes[0];
+    }
+
+    async load() {
+        const html = await getEntryHtml(this.path, this.event, this.section);
+        this.parseHtml(html);
+        this.parseGames(html);
+    }
+
+    parseHtml(html) {
+        const entry = parseEntryFile(this.event, this.section, this.player, html);
+        this.ratingBefore = entry.ratingBefore;
+        this.ratingAfter = entry.ratingAfter;
+        this.ratingDualBefore = entry.ratingDualBefore;
+        this.ratingDualAfter = entry.ratingDualAfter;
+        this.score = entry.score;
+        this.pairingNum = entry.pairingNum;
+    }
+
+    parseGames(html) {
+        this.games = parseGames(this.event, this.section, this.player, html);
     }
 }
 

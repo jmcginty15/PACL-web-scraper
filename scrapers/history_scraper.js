@@ -1,7 +1,6 @@
 const fs = require('fs');
-const axios = require('axios');
 const { CONFIG } = require('../config');
-const { parseHistoryFile, updateHistoryFile } = require('../parsers/history_parser.js');
+const axios = require('axios');
 
 async function getHistory(id) {
     const pageName = 'MbrDtlTnmtHst';
@@ -19,7 +18,7 @@ async function getHistory(id) {
         fs.writeFileSync(`html_pages/histories/${fileName}`, file);
     }
 
-    await parseHistoryFile(id, file);
+    return file;
 }
 
 async function updateHistory(id) {
@@ -35,7 +34,7 @@ async function updateHistory(id) {
     console.log(savingMsg);
     fs.writeFileSync(`html_pages/histories/${fileName}`, file);
 
-    await updateHistoryFile(id, file);
+    return file;
 }
 
 function findHistoryFile(fileName) {

@@ -1,6 +1,6 @@
 const fs = require('fs');
-const axios = require('axios');
 const { CONFIG } = require('../config');
+const axios = require('axios');
 const { parseMemberFile } = require('../parsers/member_parser.js');
 
 async function getMember(id) {

@@ -1,7 +1,6 @@
 const fs = require('fs');
-const axios = require('axios');
 const { CONFIG } = require('../config');
-const { parseSectionFile } = require('../parsers/section_parser.js');
+const axios = require('axios');
 
 async function getSectionHtml(path, lite) {
     const dotIndex = path.indexOf('.');
@@ -22,7 +21,7 @@ async function getSectionHtml(path, lite) {
         fs.writeFileSync(`html_pages/sections/${fileName}`, file);
     }
 
-    await parseSectionFile(eventId, sectionNum, file, lite);
+    return file;
 }
 
 function findSectionFile(fileName) {

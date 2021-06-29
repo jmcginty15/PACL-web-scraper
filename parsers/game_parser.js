@@ -1,10 +1,8 @@
-const { Game } = require('../models/game');
-const { Member } = require('../models/member');
-
-async function parseGames(eventId, sectionNum, playerId, html) {
+function parseGames(eventId, sectionNum, playerId, html) {
     const firstGameRefIndex = html.indexOf('<b>Opponent</b>');
     const lastGameRefIndex = html.indexOf('<tr><td colspan=15> Click on opponent ID', firstGameRefIndex);
 
+    const games = [];
     let nextRefIndex = html.indexOf('<tr>', firstGameRefIndex);
     let roundNum = 1;
     while (nextRefIndex < lastGameRefIndex && nextRefIndex !== -1) {
@@ -46,11 +44,12 @@ async function parseGames(eventId, sectionNum, playerId, html) {
             nextGame.colorsReported = null;
         }
 
-        if (oppId) await Member.insertIfNotExists(oppId);
-        await Game.insertIfNotExists(nextGame);
+        games.push(nextGame);
         nextRefIndex = html.indexOf('<tr>', nextRefIndex + 4);
         roundNum++;
     }
+    
+    return games;
 }
 
 module.exports = { parseGames };

@@ -1,10 +1,9 @@
-const { Club } = require('../models/club');
-const { getEventHtml } = require('../scrapers/event_scraper');
+function parseClubFile(clubId, html) {
+    const club = { id: clubId };
 
-async function parseClubFile(clubId, html) {
     const clubNameIndex = html.indexOf(':', html.indexOf(`${clubId}:`)) + 2;
     const clubName = html.slice(clubNameIndex, html.indexOf('</b>', clubNameIndex));
-    Club.insertIfNotExists(clubId, clubName);
+    club.name = clubName;
 
     const detailIndices = [];
     let index = 0;
@@ -15,11 +14,14 @@ async function parseClubFile(clubId, html) {
     }
     detailIndices.pop();
 
+    club.events = [];
     for (let detailIndex of detailIndices) {
-        const hrefIndex = html.indexOf('href=', detailIndex) + 5;
-        const nextPage = html.slice(hrefIndex, html.indexOf('>', hrefIndex));
-        await getEventHtml(nextPage, false);
+        const phpIndex = html.indexOf('.php?', detailIndex) + 5;
+        const nextEvent = html.slice(phpIndex, html.indexOf('>', phpIndex));
+        club.events.push(nextEvent);
     }
+
+    return club;
 }
 
 module.exports = { parseClubFile };

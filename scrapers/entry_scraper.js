@@ -1,10 +1,8 @@
 const fs = require('fs');
-const axios = require('axios');
 const { CONFIG } = require('../config');
-const { parseEntryFile } = require('../parsers/entry_parser.js');
-const { parseGames } = require('../parsers/game_parser');
+const axios = require('axios');
 
-async function getEntryHtml(path, eventId, sectionNum, lite) {
+async function getEntryHtml(path, eventId, sectionNum) {
     const dotIndex = path.indexOf('.');
     const lastDashIndex = path.lastIndexOf('-');
     const pageName = path.slice(0, dotIndex);
@@ -22,8 +20,7 @@ async function getEntryHtml(path, eventId, sectionNum, lite) {
         fs.writeFileSync(`html_pages/entries/${fileName}`, file);
     }
 
-    await parseEntryFile(eventId, sectionNum, memberId, file);
-    if (!lite) await parseGames(eventId, sectionNum, memberId, file);
+    return file;
 }
 
 function findEntryFile(fileName) {

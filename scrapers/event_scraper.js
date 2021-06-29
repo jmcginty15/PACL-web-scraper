@@ -1,7 +1,6 @@
 const fs = require('fs');
-const axios = require('axios');
 const { CONFIG } = require('../config');
-const { parseEventFile } = require('../parsers/event_parser.js');
+const axios = require('axios');
 
 async function getEventHtml(path, lite) {
     const dotIndex = path.indexOf('.');
@@ -20,7 +19,7 @@ async function getEventHtml(path, lite) {
         fs.writeFileSync(`html_pages/events/${fileName}`, file);
     }
 
-    await parseEventFile(eventId, file, lite);
+    return file;
 }
 
 function findEventFile(fileName) {

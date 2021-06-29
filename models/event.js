@@ -1,9 +1,15 @@
 const TYPES = require('tedious').TYPES;
 const { executeSql } = require('../db');
-const { Member } = require('./member');
+const { getEventHtml } = require('../scrapers/event_scraper');
+const { parseEventFile } = require('../parsers/event_parser');
 
 class Event {
-    static async insertIfNotExists(id, name, locationCity, locationZip, dates, sponsoringClub, sponsorName, chiefTd, tdName, sections, players) {
+    constructor(id) {
+        this.id = id;
+        this.path = `XtblMain.php?${id}`;
+    }
+
+    static async insertIfNotExists({ id, name, locationCity, locationZip, dates, sponsoringClub, sponsorName, chiefTd, tdName, sections, players }) {
         let msg = `Event ${id} ${name} inserted`;
 
         const sponsorCheckQuery = 'SELECT * FROM clubs WHERE id = @id';
@@ -16,8 +22,6 @@ class Event {
             sponsorParams.push({ name: 'name', type: TYPES.Text, value: sponsorName });
             await executeSql(sponsorQuery, sponsorParams, 'INSERT');
         }
-
-        await Member.insertIfNotExists(chiefTd);
 
         const query = 'INSERT INTO events (id, name, locationCity, locationZip, dates, sponsoringClub, chiefTd, sections, players) VALUES (@id, @name, @locationCity, @locationZip, @dates, @sponsoringClub, @chiefTd, @sections, @players)';
         const params = [
@@ -45,13 +49,26 @@ class Event {
         const eventQuery = 'SELECT * FROM events WHERE id = @id';
         const eventParams = [{ name: 'id', type: TYPES.BigInt, value: parseInt(id) }];
         const eventRes = await executeSql(eventQuery, eventParams, 'SELECT');
-        // try {
-        //     eventRes = await executeSql(eventQuery, eventParams, 'SELECT');
-        // } catch (err) {
-        //     console.log(err);
-        // }
-        // return eventRes ? eventRes[0] : null;
         return eventRes.length === 0 ? null : eventRes[0];
+    }
+
+    async load() {
+        const html = await getEventHtml(this.path);
+        this.parseHtml(html);
+    }
+
+    parseHtml(html) {
+        const event = parseEventFile(this.id, html);
+        this.name = event.name;
+        this.locationCity = event.locationCity;
+        this.locationZip = event.locationZip;
+        this.dates = event.dates;
+        this.sponsorName = event.sponsorName;
+        this.sponsoringClub = event.sponsoringClub;
+        this.tdName = event.tdName;
+        this.chiefTd = event.chiefTd;
+        this.players = event.players;
+        this.sections = event.sections;
     }
 }
 
