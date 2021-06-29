@@ -1,6 +1,6 @@
 const fs = require('fs');
 const { CONFIG } = require('../config');
-const axios = require('axios');
+const { ScraperApi } = require('../api');
 
 async function getHistory(id) {
     const pageName = 'MbrDtlTnmtHst';
@@ -11,8 +11,7 @@ async function getHistory(id) {
     if (!file) {
         const findingMsg = `Finding tournament history page for member ${id}...`;
         console.log(findingMsg);
-        const res = await axios.get(`${CONFIG.API_URL}?api_key=${CONFIG.API_KEY}&url=${CONFIG.USCHESS_URL}${path}`);
-        file = res.data;
+        file = await ScraperApi.get(`${CONFIG.API_URL}?api_key=${CONFIG.API_KEY}&url=${CONFIG.USCHESS_URL}${path}`);
         const savingMsg = `Saving tournament history page for member ${id}...`;
         console.log(savingMsg);
         fs.writeFileSync(`html_pages/histories/${fileName}`, file);
@@ -28,8 +27,7 @@ async function updateHistory(id) {
 
     const findingMsg = `Finding updated tournament history page for member ${id}...`;
     console.log(findingMsg);
-    const res = await axios.get(`${CONFIG.API_URL}?api_key=${CONFIG.API_KEY}&url=${CONFIG.USCHESS_URL}${path}`);
-    file = res.data;
+    file = await ScraperApi.get(`${CONFIG.API_URL}?api_key=${CONFIG.API_KEY}&url=${CONFIG.USCHESS_URL}${path}`);
     const savingMsg = `Saving updated tournament history page for member ${id}...`;
     console.log(savingMsg);
     fs.writeFileSync(`html_pages/histories/${fileName}`, file);

@@ -1,6 +1,6 @@
 const fs = require('fs');
 const { CONFIG } = require('../config');
-const axios = require('axios');
+const { ScraperApi } = require('../api');
 const { parseMemberFile } = require('../parsers/member_parser.js');
 
 async function getMember(id) {
@@ -12,8 +12,7 @@ async function getMember(id) {
     if (!file) {
         const findingMsg = `Finding detail page for member ${id}...`;
         console.log(findingMsg);
-        const res = await axios.get(`${CONFIG.API_URL}?api_key=${CONFIG.API_KEY}&url=${CONFIG.USCHESS_URL}${path}`);
-        file = res.data;
+        file = await ScraperApi.get(`${CONFIG.API_URL}?api_key=${CONFIG.API_KEY}&url=${CONFIG.USCHESS_URL}${path}`);
         const savingMsg = `Saving detail page for member ${id}...`;
         console.log(savingMsg);
         fs.writeFileSync(`html_pages/members/${fileName}`, file);
@@ -30,8 +29,7 @@ async function updateMember(id) {
 
     const findingMsg = `Finding updated detail page for member ${id}...`;
     console.log(findingMsg);
-    const res = await axios.get(`${CONFIG.API_URL}?api_key=${CONFIG.API_KEY}&url=${CONFIG.USCHESS_URL}${path}`);
-    file = res.data;
+    file = await ScraperApi.get(`${CONFIG.API_URL}?api_key=${CONFIG.API_KEY}&url=${CONFIG.USCHESS_URL}${path}`);
     const savingMsg = `Saving updated detail page for member ${id}...`;
     console.log(savingMsg);
     fs.writeFileSync(`html_pages/members/${fileName}`, file);

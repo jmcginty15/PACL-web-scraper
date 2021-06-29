@@ -28,7 +28,7 @@ class Club {
     }
 
     static async getMembers(id) {
-        const query = 'SELECT DISTINCT members.id FROM members RIGHT JOIN entries ON members.id = entries.player RIGHT JOIN events ON entries.event = events.id WHERE events.sponsoringClub = @sponsorId';
+        const query = 'SELECT DISTINCT members.id FROM members RIGHT JOIN entries ON members.id = entries.player RIGHT JOIN events ON entries.event = events.id WHERE events.sponsoringClub = @sponsorId ORDER BY members.id';
         const params = [{ name: 'sponsorId', type: TYPES.BigInt, value: parseInt(id.slice(1)) }];
         return await executeSql(query, params, 'SELECT');
     }

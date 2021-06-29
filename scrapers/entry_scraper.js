@@ -1,6 +1,6 @@
 const fs = require('fs');
 const { CONFIG } = require('../config');
-const axios = require('axios');
+const { ScraperApi } = require('../api');
 
 async function getEntryHtml(path, eventId, sectionNum) {
     const dotIndex = path.indexOf('.');
@@ -13,8 +13,7 @@ async function getEntryHtml(path, eventId, sectionNum) {
     if (!file) {
         const findingMsg = `Finding detail page for entry ${eventId}.${sectionNum}.${memberId}...`;
         console.log(findingMsg);
-        const res = await axios.get(`${CONFIG.API_URL}?api_key=${CONFIG.API_KEY}&url=${CONFIG.USCHESS_URL}${path}`);
-        file = res.data;
+        file = await ScraperApi.get(`${CONFIG.API_URL}?api_key=${CONFIG.API_KEY}&url=${CONFIG.USCHESS_URL}${path}`);
         const savingMsg = `Saving detail page for entry ${eventId}.${sectionNum}.${memberId}...`;
         console.log(savingMsg);
         fs.writeFileSync(`html_pages/entries/${fileName}`, file);
