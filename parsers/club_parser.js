@@ -3,7 +3,7 @@ function parseClubFile(clubId, html) {
 
     const clubNameIndex = html.indexOf(':', html.indexOf(`${clubId}:`)) + 2;
     const clubName = html.slice(clubNameIndex, html.indexOf('</b>', clubNameIndex));
-    club.name = clubName;
+    club.name = clubName === '[Error-unknown]' ? 'INACTIVE' : clubName;
 
     const detailIndices = [];
     let index = 0;
