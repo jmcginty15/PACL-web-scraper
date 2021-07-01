@@ -1,39 +1,36 @@
-const process = require('process');
-const { insertClub, updateClub, insertOrUpdateEvent, insertOrUpdateMember } = require('./functions');
+const express = require('express');
+const cors = require('cors');
+const app = express();
+const ExpressError = require('./expressError');
+const clubRoutes = require('./routes/clubs');
+const entryRoutes = require('./routes/entries');
+const eventRoutes = require('./routes/events');
+const gameRoutes = require('./routes/games');
+const memberRoutes = require('./routes/members');
+const sectionRoutes = require('./routes/sections');
 
-const helpMessage = `
-This tool scrapes data from the USCF Member Services Area at\nhttp://www.uschess.org/msa/ and updates the PACL database.
+app.use(cors({ origin: '*' }));
+app.use(express.json());
 
-Commands:
-node app.js club <clubId>: Enter new club
-node app.js club <clubId> update: Update all club members
-node app.js event <eventId>: Enter new event
-node app.js member <memberId>: Update member
+app.use('/clubs', clubRoutes);
+app.use('/entries', entryRoutes);
+app.use('/events', eventRoutes);
+app.use('/games', gameRoutes);
+app.use('/members', memberRoutes);
+app.use('/sections', sectionRoutes);
 
-Entering a new club may take a while if the club has an extensive tournament history.`;
+app.use(function (req, res, next) {
+    const err = new ExpressError('Not Found', 404);
+    return next(err);
+});
 
-const errMessage = `
-Command not recognized.
-Use command 'node app.js help' to see list of available commands.`
+app.use(function (err, req, res, next) {
+    res.status(err.status || 500);
 
-switch (process.argv[2]) {
-    case 'help':
-        console.log(helpMessage);
-        break;
-    case 'club':
-        const clubId = process.argv[3];
-        if (process.argv[4] === 'update') updateClub(clubId);
-        else insertClub(clubId);
-        break;
-    case 'event':
-        const eventId = process.argv[3];
-        insertOrUpdateEvent(eventId);
-        break;
-    case 'member':
-        const memberId = process.argv[3];
-        insertOrUpdateMember(memberId);
-        break;
-    default:
-        console.log(errMessage);
-        break;
-}
+    return res.json({
+        error: err,
+        message: err.message
+    });
+});
+
+module.exports = app;

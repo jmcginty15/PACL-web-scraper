@@ -11,6 +11,7 @@ GO
 
 CREATE TABLE clubs (
     id BIGINT PRIMARY KEY,
+    type TEXT,
     name TEXT
 );
 GO

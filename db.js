@@ -1,5 +1,4 @@
 const tedious = require('tedious');
-const { resourceLimits } = require('worker_threads');
 
 const config = {
     server: 'localhost',

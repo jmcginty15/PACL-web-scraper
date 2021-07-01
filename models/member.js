@@ -93,12 +93,16 @@ class Member {
         ];
 
         let msg = `Member ${id} ${member.name} ${msgQueryType}`;
+        let success = false;
         try {
             await executeSql(query, params, queryType);
+            success = true;
         } catch (err) {
             msg = `Error ${errMsgQueryType} member ${id} ${member.name}`;
         }
         console.log(msg);
+
+        if (!success) throw new ExpressError(msg, 500);
     }
 
     static async getHistory(id) {
@@ -111,11 +115,56 @@ class Member {
         return parseHistoryFile(html);
     }
 
-    static async findById(id) {
+    static async getById(id) {
         const memberQuery = 'SELECT * FROM members WHERE id = @id';
         const memberParams = [{ name: 'id', type: TYPES.BigInt, value: parseInt(id) }];
         const memberRes = await executeSql(memberQuery, memberParams, 'SELECT');
-        return memberRes.length === 0 ? null : memberRes[0];
+
+        let member = null;
+        if (memberRes.length === 0) return member;
+        else member = memberRes[0];
+
+        member.id = parseInt(member.id);
+        member.entries = await Member.getEntries(id);
+        member.directedEvents = await Member.getDirectedEvents(id);
+        member.directedSections = await Member.getDirectedSections(id);
+
+        return member;
+    }
+
+    static async getEntries(id) {
+        const query = 'SELECT event, section, pairingNum, score, ratingBefore, ratingAfter, ratingDualBefore, ratingDualAfter FROM entries WHERE player = @player ORDER BY event, section';
+        const params = [{ name: 'player', type: TYPES.BigInt, value: parseInt(id) }];
+        const entries = await executeSql(query, params, 'SELECT');
+        for (let entry of entries) entry.event = parseInt(entry.event);
+        return entries;
+    }
+
+    static async getDirectedEvents(id) {
+        const query = 'SELECT id, name, locationCity, locationZip, dates, sponsoringClub, sections, players FROM events WHERE chiefTd = @chiefTd ORDER BY id';
+        const params = [{ name: 'chiefTd', type: TYPES.BigInt, value: parseInt(id) }];
+        const events = await executeSql(query, params, 'SELECT');
+        for (let event of events) {
+            event.id = parseInt(event.id);
+            event.sponsoringClub = await Member.getSponsoringClub(event.sponsoringClub);
+        }
+        return events;
+    }
+
+    static async getSponsoringClub(id) {
+        const query = 'SELECT id, type FROM clubs WHERE id = @id';
+        const params = [{ name: 'id', type: TYPES.BigInt, value: parseInt(id) }];
+        const sponsorRes = await executeSql(query, params, 'SELECT');
+        const sponsor = sponsorRes[0];
+        return `${sponsor.type}${sponsor.id}`;
+    }
+
+    static async getDirectedSections(id) {
+        const query = 'SELECT event, id, name, dates, rounds, players, kFactor, ratingSys, tournamentType, timeControl FROM sections WHERE chiefTd = @chiefTd ORDER BY id';
+        const params = [{ name: 'chiefTd', type: TYPES.BigInt, value: parseInt(id) }];
+        const sections = await executeSql(query, params, 'SELECT');
+        for (let section of sections) section.event = parseInt(section.event);
+        return sections;
     }
 }
 

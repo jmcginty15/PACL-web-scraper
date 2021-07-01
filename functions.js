@@ -20,7 +20,6 @@ async function insertClub(clubId) {
         while (sectionNum <= event.sections) {
             const section = new Section(event.id, sectionNum);
             await section.load();
-
             if (section.chiefTd) await Member.insertIfNotExists(section.chiefTd);
             else section.chiefTd = event.chiefTd;
 

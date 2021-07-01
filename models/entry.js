@@ -9,7 +9,7 @@ class Entry {
         this.event = eventId;
         this.section = sectionNum;
         this.player = playerId;
-        let pathSection = sectionNum;
+        let pathSection = `${sectionNum}`;
         while (pathSection.length < 3) pathSection = `0${pathSection}`;
         this.path = `XtblPlr.php?${eventId}-${pathSection}-${playerId}`;
     }
@@ -23,7 +23,7 @@ class Entry {
         ];
         const entryRes = await executeSql(entryCheckQuery, entryCheckParams, 'SELECT');
 
-        if (entryRes.length === 0) {            
+        if (entryRes.length === 0) {
             const query = 'INSERT INTO entries (event, section, player, pairingNum, score, ratingBefore, ratingAfter, ratingDualBefore, ratingDualAfter) VALUES (@event, @section, @player, @pairingNum, @score, @ratingBefore, @ratingAfter, @ratingDualBefore, @ratingDualAfter)';
             const params = [
                 { name: 'event', type: TYPES.BigInt, value: parseInt(event) },
@@ -48,17 +48,69 @@ class Entry {
         } else console.log(`Entry ${event}.${section}.${player} already exists`);
     }
 
-    static async findById(event, section, player) {
-        const entryCheckQuery = 'SELECT * FROM entries WHERE event = @event AND section = @section AND player = @player';
-        const entryCheckParams = [
+    static async getById(event, section, player) {
+        const query = 'SELECT * FROM entries WHERE event = @event AND section = @section AND player = @player';
+        const params = [
             { name: 'event', type: TYPES.BigInt, value: parseInt(event) },
             { name: 'section', type: TYPES.Int, value: parseInt(section) },
             { name: 'player', type: TYPES.BigInt, value: parseInt(player) }
         ];
-        const entryRes = await executeSql(entryCheckQuery, entryCheckParams, 'SELECT');
+        const entryRes = await executeSql(query, params, 'SELECT');
 
-        if (entryRes.length === 0) return null;
-        else return entryRes[0];
+        let entry = null;
+        if (entryRes.length === 0) return entry;
+        else entry = entryRes[0];
+
+        const eventId = entry.event;
+        const sectionId = entry.section;
+        const playerId = entry.player;
+
+        entry.event = await Entry.getEvent(eventId);
+        entry.section = await Entry.getSection(eventId, sectionId);
+        entry.player = await Entry.getPlayer(playerId);
+
+        return entry;
+    }
+
+    static async getEvent(id) {
+        const query = 'SELECT * FROM events WHERE id = @id';
+        const params = [{ name: 'id', type: TYPES.BigInt, value: parseInt(id) }];
+        const eventRes = await executeSql(query, params, 'SELECT');
+        const event = eventRes[0];
+        event.id = parseInt(event.id);
+        event.sponsoringClub = await Entry.getEventSponsor(event.sponsoringClub);
+        event.chiefTd = parseInt(event.chiefTd);
+        return event;
+    }
+
+    static async getEventSponsor(id) {
+        const query = 'SELECT * FROM clubs WHERE id = @id';
+        const params = [{ name: 'id', type: TYPES.BigInt, value: parseInt(id) }];
+        const sponsorRes = await executeSql(query, params, 'SELECT');
+        const sponsor = sponsorRes[0];
+        return `${sponsor.type}${sponsor.id}`;
+    }
+
+    static async getSection(event, id) {
+        const query = 'SELECT id, name, dates, chiefTd, rounds, players, kFactor, ratingSys, tournamentType, timeControl FROM sections WHERE event = @event AND id = @id';
+        const params = [
+            { name: 'event', type: TYPES.BigInt, value: parseInt(event) },
+            { name: 'id', type: TYPES.BigInt, value: parseInt(id) }
+        ];
+        const sectionRes = await executeSql(query, params, 'SELECT');
+        const section = sectionRes[0];
+        section.chiefTd = parseInt(section.chiefTd);
+        return section;
+    }
+
+    static async getPlayer(id) {
+        const query = 'SELECT * FROM members WHERE id = @id';
+        const params = [{ name: 'id', type: TYPES.BigInt, value: parseInt(id) }];
+        const playerRes = await executeSql(query, params, 'SELECT');
+        const player = playerRes[0];
+        player.id = parseInt(player.id);
+        if (player.FIDEID) player.FIDEID = parseInt(player.FIDEID);
+        return player;
     }
 
     async load() {

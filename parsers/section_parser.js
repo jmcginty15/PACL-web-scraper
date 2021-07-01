@@ -1,3 +1,9 @@
+// const fs = require('fs');
+// const eventId = process.argv[2];
+// const sectionNum = process.argv[3];
+// const html = fs.readFileSync('html_pages/sections/XtblMain_202101094342_1.html', 'utf-8');
+// parseSectionFile(eventId, sectionNum, html);
+
 function parseSectionFile(eventId, sectionNum, html) {
     const section = { event: eventId, sectionNum: sectionNum };
 
@@ -22,7 +28,7 @@ function parseSectionFile(eventId, sectionNum, html) {
     section.kFactor = html.slice(kFactorIndex, html.indexOf('&nbsp;', kFactorIndex) - 2);
     const ratingSysIndex = html.indexOf('Rating Sys:', kFactorIndex) + 12;
     section.ratingSys = html.slice(ratingSysIndex, html.indexOf('&nbsp;', ratingSysIndex) - 3);
-    const tournamentTypeIndex = html.indexOf('Tnmt Type:') + 11;
+    const tournamentTypeIndex = html.indexOf('Tnmt Type:', ratingSysIndex) + 11;
     section.tournamentType = html.slice(tournamentTypeIndex, html.indexOf('<br>', tournamentTypeIndex) - 2);
     const timeControlIndex = html.indexOf('Time Control:', tournamentTypeIndex) + 14;
     section.timeControl = html.slice(timeControlIndex, html.indexOf('</b>', timeControlIndex));

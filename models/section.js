@@ -37,14 +37,65 @@ class Section {
         console.log(msg);
     }
 
-    static async findById(eventId, sectionNum) {
+    static async getById(eventId, sectionNum) {
         const sectionQuery = 'SELECT * FROM sections WHERE event = @event AND id = @id';
         const sectionParams = [
             { name: 'event', type: TYPES.BigInt, value: parseInt(eventId) },
             { name: 'id', type: TYPES.Int, value: parseInt(sectionNum) }
         ];
         const sectionRes = await executeSql(sectionQuery, sectionParams, 'SELECT');
-        return sectionRes.length === 0 ? null : sectionRes[0];
+
+        let section = null;
+        if (sectionRes.length === 0) return section;
+        else section = sectionRes[0];
+
+        const event = section.event;
+
+        section.event = await Section.getEvent(event);
+        section.chiefTd = await Section.getChiefTd(section.chiefTd);
+        section.entries = await Section.getEntries(event, section.id);
+
+        return section;
+    }
+
+    static async getEvent(id) {
+        const query = 'SELECT * FROM events WHERE id = @id';
+        const params = [{ name: 'id', type: TYPES.BigInt, value: parseInt(id) }];
+        const eventRes = await executeSql(query, params, 'SELECT');
+        const event = eventRes[0];
+        event.id = parseInt(event.id);
+        event.sponsoringClub = await Section.getEventSponsor(event.sponsoringClub);
+        event.chiefTd = parseInt(event.chiefTd);
+        return event;
+    }
+
+    static async getEventSponsor(id) {
+        const query = 'SELECT * FROM clubs WHERE id = @id';
+        const params = [{ name: 'id', type: TYPES.BigInt, value: parseInt(id) }];
+        const sponsorRes = await executeSql(query, params, 'SELECT');
+        const sponsor = sponsorRes[0];
+        return `${sponsor.type}${sponsor.id}`;
+    }
+
+    static async getChiefTd(id) {
+        const query = 'SELECT * FROM members WHERE id = @id';
+        const params = [{ name: 'id', type: TYPES.BigInt, value: parseInt(id) }];
+        const chiefTdRes = await executeSql(query, params, 'SELECT');
+        const chiefTd = chiefTdRes[0];
+        chiefTd.id = parseInt(chiefTd.id);
+        if (chiefTd.FIDEID) chiefTd.FIDEID = parseInt(chiefTd.FIDEID);
+        return chiefTd;
+    }
+
+    static async getEntries(event, id) {
+        const query = 'SELECT player, pairingNum, score, ratingBefore, ratingAfter, ratingDualBefore, ratingDualAfter FROM entries WHERE event = @event AND section = @section ORDER BY pairingNum';
+        const params = [
+            { name: 'event', type: TYPES.BigInt, value: parseInt(event) },
+            { name: 'section', type: TYPES.BigInt, value: parseInt(id) }
+        ];
+        const entries = await executeSql(query, params, 'SELECT');
+        for (let entry of entries) entry.player = parseInt(entry.player);
+        return entries;
     }
 
     async load() {
