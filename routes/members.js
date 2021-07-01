@@ -78,7 +78,7 @@ const router = new express.Router();
         if (member !== null) return res.json({ message: `Member ${id} ${member.name} already exists` });
         await insertOrUpdateMember(id);
         member = await Member.getById(id);
-        return res.json({ updated: member });
+        return res.json({ member: member });
     } catch (err) {
         return next(err);
     }

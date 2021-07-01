@@ -96,7 +96,8 @@ async function updateClub(clubId) {
 
 async function insertOrUpdateEvent(eventId) {
     const event = new Event(eventId);
-    await event.load();
+    const error = await event.load();
+    if (error === 'error') return error;
     await Member.insertIfNotExists(event.chiefTd);
     await Event.insertIfNotExists(event);
 

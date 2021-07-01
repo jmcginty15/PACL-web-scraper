@@ -102,6 +102,7 @@ class Event {
 
     async load() {
         const html = await getEventHtml(this.path);
+        if (html === 'error') return html;
         this.parseHtml(html);
     }
 
