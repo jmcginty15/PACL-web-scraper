@@ -118,7 +118,7 @@ router.put('/:id', async function (req, res, next) {
         await insertOrUpdateMember(id);
         const member = await Member.getById(id);
         if (member === null) throw new ExpressError(`Member ${id} not found`, 404);
-        return res.json({ updated: member });
+        return res.json({ member: member });
     } catch (err) {
         return next(err);
     }
