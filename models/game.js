@@ -143,6 +143,25 @@ class Game {
         return { event: eventObj, games: games };
     }
 
+    static async getUnreportedsByPlayerEvent(id, event) {
+        const query = 'SELECT section, round, white, black, colorsReported, result FROM games WHERE event = @event AND (white = @player OR black = @player) AND colorsReported = @colorsReported ORDER BY section, round';
+        const params = [
+            { name: 'event', type: TYPES.BigInt, value: parseInt(event) },
+            { name: 'player', type: TYPES.BigInt, value: parseInt(id) },
+            { name: 'colorsReported', type: TYPES.BigInt, value: 0 }
+        ];
+        const games = await executeSql(query, params, 'SELECT');
+        const eventObj = await Game.getEvent(event);
+
+        for (let game of games) {
+            game.section = await Game.getSection(event, game.section);
+            game.white = await Game.getPlayer(game.white);
+            game.black = parseInt(game.black) === 0 ? null : await Game.getPlayer(game.black);
+        }
+
+        return { event: eventObj, games: games };
+    }
+
     static async getByPlayerEventSection(id, event, section) {
         const query = 'SELECT round, white, black, colorsReported, result FROM games WHERE event = @event AND section = @section AND (white = @player OR black = @player) ORDER BY round';
         const params = [
@@ -202,6 +221,26 @@ class Game {
         return { event: eventObj, section: sectionObj, games: games };
     }
 
+    static async getUnreportedsByPlayerEventSection(id, event, section) {
+        const query = 'SELECT round, white, black, colorsReported, result FROM games WHERE event = @event AND section = @section AND (white = @player OR black = @player) AND colorsReported = @colorsReported ORDER BY round';
+        const params = [
+            { name: 'event', type: TYPES.BigInt, value: parseInt(event) },
+            { name: 'section', type: TYPES.BigInt, value: parseInt(section) },
+            { name: 'player', type: TYPES.BigInt, value: parseInt(id) },
+            { name: 'colorsReported', type: TYPES.BigInt, value: 0 }
+        ];
+        const games = await executeSql(query, params, 'SELECT');
+        const eventObj = await Game.getEvent(event);
+        const sectionObj = await Game.getSection(event, section);
+
+        for (let game of games) {
+            game.white = await Game.getPlayer(game.white);
+            game.black = parseInt(game.black) === 0 ? null : await Game.getPlayer(game.black);
+        }
+
+        return { event: eventObj, section: sectionObj, games: games };
+    }
+
     static async getByPlayers(id1, id2) {
         const query = 'SELECT * FROM games WHERE (white = @player1 AND black = @player2) OR (white = @player2 AND black = @player1) ORDER BY event, section, round';
         const params = [
@@ -245,6 +284,25 @@ class Game {
         const params = [
             { name: 'player', type: TYPES.BigInt, value: parseInt(id) },
             { name: 'colorsReported', type: TYPES.BigInt, value: 1 }
+        ];
+        const games = await executeSql(query, params, 'SELECT');
+
+        for (let game of games) {
+            const event = game.event;
+            game.event = await Game.getEvent(event);
+            game.section = await Game.getSection(event, game.section);
+            game.white = await Game.getPlayer(game.white);
+            game.black = parseInt(game.black) === 0 ? null : await Game.getPlayer(game.black);
+        }
+
+        return games;
+    }
+
+    static async getUnreportedsByPlayer(id) {
+        const query = 'SELECT * FROM games WHERE (white = @player OR black = @player) AND colorsReported = @colorsReported ORDER BY event, section, round';
+        const params = [
+            { name: 'player', type: TYPES.BigInt, value: parseInt(id) },
+            { name: 'colorsReported', type: TYPES.BigInt, value: 0 }
         ];
         const games = await executeSql(query, params, 'SELECT');
 
