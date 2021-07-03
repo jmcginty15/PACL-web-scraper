@@ -685,3 +685,9 @@ Find all games played with the black pieces by a given player at a given event a
 Find all games of a given player at a given event and section by player ID, event ID, and section ID with unreported color assignments. Returns an identical schema to `/GET /games/:player/:section/:event/all`.
 
 `{ event: Event, section: Section, games: arr(Game) }`
+
+#### `GET /games/:player1/:player2`
+
+Find all games played between two players. Returns an identical schema to `GET /games/:player/all`.
+
+`{ games: games }`
