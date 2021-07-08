@@ -9,6 +9,13 @@ function parseEventFile(eventId, html) {
     const eventLocationIndex = html.indexOf('<b>', locationIndex) + 3;
     const zipIndex = html.indexOf('&nbsp;', eventLocationIndex) - 1;
     event.locationCity = html.slice(eventLocationIndex, zipIndex);
+    if (event.locationCity.slice(0, 12) === 'Online Event') event.locationCity = 'ONLINE';
+    if (event.locationCity.indexOf(',') !== -1) {
+        let [tempCity, tempState] = event.locationCity.split(',');
+        while (tempCity.slice(-1) === ' ') tempCity = tempCity.slice(0, -1);
+        while (tempState.slice(0, 1) === ' ') tempState = tempState.slice(1);
+        event.locationCity = `${tempCity}, ${tempState}`;
+    }
     event.locationZip = html.slice(zipIndex + 7, html.indexOf('&nbsp;', zipIndex + 7) - 1);
     const datesIndex = html.indexOf('Event Date(s)', eventSummaryIndex) + 13;
     const eventDatesIndex = html.indexOf('<b>', datesIndex) + 3;
@@ -23,6 +30,7 @@ function parseEventFile(eventId, html) {
     event.tdName = html.slice(tdNameIndex, html.indexOf('</b>', tdNameIndex));
     const tdIdIndex = html.indexOf('<small>', tdNameIndex) + 8;
     event.chiefTd = html.slice(tdIdIndex, html.indexOf(')', tdIdIndex));
+    if (event.chiefTd === '') event.chiefTd = '0';
     const statsIndex = html.indexOf('Stats', eventSummaryIndex) + 5;
     const sectionsIndex = html.indexOf('<b>', statsIndex) + 3;
     const sections = html.slice(sectionsIndex, html.indexOf('Section(s)', sectionsIndex) - 1);

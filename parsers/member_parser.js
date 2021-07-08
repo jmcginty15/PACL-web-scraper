@@ -3,7 +3,8 @@ function parseMemberFile(id, html) {
 
     const nameIndex = html.indexOf(id) + id.length + 2;
     member.name = html.slice(nameIndex, html.indexOf('</b>', nameIndex));
-    if (member.name.slice(-16) === '&nbsp;(Deceased)' || member.name.slice(-16) === '&nbsp;(Inactive)') member.name = member.name.slice(0, -16);
+    const spIndex = member.name.indexOf('&nbsp;');
+    if (spIndex !== -1) member.name = member.name.slice(0, spIndex);
 
     const regRatingRefIndex = html.indexOf('Regular Rating');
     const regRatingIndex = html.indexOf('<nobr>', regRatingRefIndex) + 7;

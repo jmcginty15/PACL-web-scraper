@@ -2,7 +2,7 @@ const TYPES = require('tedious').TYPES;
 const { executeSql } = require('../db');
 const { getMember, updateMember } = require('../scrapers/member_scraper');
 const { getHistory, updateHistory } = require('../scrapers/history_scraper');
-const { parseHistoryFile } = require('../parsers/history_parser');
+const { parseHistoryFile, countPages } = require('../parsers/history_parser');
 
 class Member {
     static async insertIfNotExists(id) {
@@ -107,12 +107,38 @@ class Member {
 
     static async getHistory(id) {
         const html = await getHistory(id);
-        return parseHistoryFile(html);
+        const events = parseHistoryFile(html);
+
+        if (html.indexOf('Show Events:') !== -1) {
+            const pageCount = countPages(html);
+            let page = 2;
+            while (page <= pageCount) {
+                const nextHtml = await getHistory(id, page);
+                const nextPage = parseHistoryFile(nextHtml, page);
+                for (let event of nextPage) events.push(event);
+                page++;
+            }
+        }
+
+        return events;
     }
 
     static async updateHistory(id) {
         const html = await updateHistory(id);
-        return parseHistoryFile(html);
+        const events = parseHistoryFile(html);
+
+        if (html.indexOf('Show Events:') !== -1) {
+            const pageCount = countPages(html);
+            let page = 2;
+            while (page <= pageCount) {
+                const nextHtml = await updateHistory(id, page);
+                const nextPage = parseHistoryFile(nextHtml, page);
+                for (let event of nextPage) events.push(event);
+                page++;
+            }
+        }
+
+        return events;
     }
 
     static async getById(id) {

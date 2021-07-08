@@ -11,28 +11,38 @@ class Section {
     }
 
     static async insertIfNotExists({ event, id, name, dates, chiefTd, rounds, players, kFactor, ratingSys, tournamentType, timeControl }) {
+        const checkQuery = 'SELECT id FROM sections WHERE event = @event AND id = @id';
+        const checkParams = [
+            { name: 'event', type: TYPES.BigInt, value: parseInt(event) },
+            { name: 'id', type: TYPES.BigInt, value: parseInt(id) }
+        ];
+        let checkRes = await executeSql(checkQuery, checkParams, 'SELECT');
+
         let msg = `Section ${event}.${id} ${name} inserted`;
 
-        const query = 'INSERT INTO sections (event, id, name, dates, chiefTd, rounds, players, kFactor, ratingSys, tournamentType, timeControl) VALUES (@event, @id, @name, @dates, @chiefTd, @rounds, @players, @kFactor, @ratingSys, @tournamentType, @timeControl)';
-        const params = [
-            { name: 'event', type: TYPES.BigInt, value: parseInt(event) },
-            { name: 'id', type: TYPES.BigInt, value: parseInt(id) },
-            { name: 'name', type: TYPES.Text, value: name },
-            { name: 'dates', type: TYPES.Text, value: dates },
-            { name: 'chiefTd', type: TYPES.BigInt, value: parseInt(chiefTd) },
-            { name: 'rounds', type: TYPES.Int, value: parseInt(rounds) },
-            { name: 'players', type: TYPES.Int, value: parseInt(players) },
-            { name: 'kFactor', type: TYPES.Text, value: kFactor },
-            { name: 'ratingSys', type: TYPES.Text, value: ratingSys },
-            { name: 'tournamentType', type: TYPES.Text, value: tournamentType },
-            { name: 'timeControl', type: TYPES.Text, value: timeControl }
-        ];
+        if (checkRes.length === 0) {
+            const query = 'INSERT INTO sections (event, id, name, dates, chiefTd, rounds, players, kFactor, ratingSys, tournamentType, timeControl) VALUES (@event, @id, @name, @dates, @chiefTd, @rounds, @players, @kFactor, @ratingSys, @tournamentType, @timeControl)';
+            const params = [
+                { name: 'event', type: TYPES.BigInt, value: parseInt(event) },
+                { name: 'id', type: TYPES.BigInt, value: parseInt(id) },
+                { name: 'name', type: TYPES.Text, value: name },
+                { name: 'dates', type: TYPES.Text, value: dates },
+                { name: 'chiefTd', type: TYPES.BigInt, value: parseInt(chiefTd) },
+                { name: 'rounds', type: TYPES.Int, value: parseInt(rounds) },
+                { name: 'players', type: TYPES.Int, value: parseInt(players) },
+                { name: 'kFactor', type: TYPES.Text, value: kFactor },
+                { name: 'ratingSys', type: TYPES.Text, value: ratingSys },
+                { name: 'tournamentType', type: TYPES.Text, value: tournamentType },
+                { name: 'timeControl', type: TYPES.Text, value: timeControl }
+            ];
 
-        try {
-            await executeSql(query, params, 'INSERT');
-        } catch (err) {
-            msg = `Section ${event}.${id} ${name} already exists`;
-        }
+            try {
+                await executeSql(query, params, 'INSERT');
+            } catch (err) {
+                console.log(err);
+                // msg = `Section ${event}.${id} ${name} already exists`;
+            }
+        } else msg = `Section ${event}.${id} ${name} already exists`;
 
         console.log(msg);
     }

@@ -13,13 +13,15 @@ class Event {
         let msg = `Event ${id} ${name} inserted`;
 
         const sponsorCheckQuery = 'SELECT * FROM clubs WHERE id = @id';
-        const sponsorId = sponsoringClub === '' ? 0 : sponsoringClub.slice(1);
+        let sponsorId = sponsoringClub === '' ? 0 : sponsoringClub.slice(1);
+        if (sponsoringClub === 'TS017777') sponsorId = sponsoringClub.slice(2);
+        const sponsorType = sponsoringClub === 'TS017777' ? 'TS' : sponsoringClub.slice(0, 1);
         const sponsorParams = [{ name: 'id', type: TYPES.BigInt, value: parseInt(sponsorId) }];
         const sponsorCheck = await executeSql(sponsorCheckQuery, sponsorParams, 'SELECT');
 
         if (sponsorCheck.length === 0) {
             const sponsorQuery = 'INSERT INTO clubs (id, type, name) VALUES (@id, @type, @name)';
-            sponsorParams.push({ name: 'type', type: TYPES.Text, value: sponsoringClub.slice(0, 1) });
+            sponsorParams.push({ name: 'type', type: TYPES.Text, value: sponsorType });
             sponsorParams.push({ name: 'name', type: TYPES.Text, value: sponsorName });
             await executeSql(sponsorQuery, sponsorParams, 'INSERT');
         }
@@ -31,7 +33,7 @@ class Event {
             { name: 'locationCity', type: TYPES.Text, value: locationCity },
             { name: 'locationZip', type: TYPES.Text, value: locationZip },
             { name: 'dates', type: TYPES.Text, value: dates },
-            { name: 'sponsoringClub', type: TYPES.BigInt, value: parseInt(sponsoringClub.slice(1)) },
+            { name: 'sponsoringClub', type: TYPES.BigInt, value: parseInt(sponsorId) },
             { name: 'chiefTd', type: TYPES.BigInt, value: parseInt(chiefTd) },
             { name: 'sections', type: TYPES.Int, value: parseInt(sections) },
             { name: 'players', type: TYPES.Int, value: parseInt(players) }

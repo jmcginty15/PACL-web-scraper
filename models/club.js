@@ -12,7 +12,6 @@ class Club {
 
     static async insertIfNotExists({ id, name }) {
         let msg = `Club ${id} ${name} inserted`;
-        console.log(id);
 
         const query = 'INSERT INTO clubs (id, type, name) VALUES (@id, @type, @name)';
         const params = [

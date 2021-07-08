@@ -6,10 +6,13 @@ const { parseGames } = require('../parsers/game_parser');
 
 class Entry {
     constructor(eventId, sectionNum, playerId) {
+        let adjSectionNum = sectionNum;
+        if (eventId === '201011288211' && parseInt(sectionNum) <= 4) `${parseInt(sectionNum) + 6}`;
+        if (eventId === '200504307281' && parseInt(sectionNum) === 3) adjSectionNum = 4;
         this.event = eventId;
         this.section = sectionNum;
         this.player = playerId;
-        let pathSection = `${sectionNum}`;
+        let pathSection = `${adjSectionNum}`;
         while (pathSection.length < 3) pathSection = `0${pathSection}`;
         this.path = `XtblPlr.php?${eventId}-${pathSection}-${playerId}`;
     }

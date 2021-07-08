@@ -1,13 +1,11 @@
-// const fs = require('fs');
-// const eventId = process.argv[2];
-// const sectionNum = process.argv[3];
-// const html = fs.readFileSync('html_pages/sections/XtblMain_202101094342_1.html', 'utf-8');
-// parseSectionFile(eventId, sectionNum, html);
-
 function parseSectionFile(eventId, sectionNum, html) {
     const section = { event: eventId, sectionNum: sectionNum };
 
-    const sectionIndex = html.indexOf(`<b>Section ${sectionNum}`) + 14 + `${sectionNum}`.length;
+    let adjSectionNum = sectionNum;
+    if (eventId === '201011288211') adjSectionNum = parseInt(sectionNum) + 6;
+    if (eventId === '200504307281' && parseInt(sectionNum) === 3) adjSectionNum = 4;
+
+    const sectionIndex = html.indexOf(`<b>Section ${adjSectionNum}`) + 14 + `${adjSectionNum}`.length;
     section.name = html.slice(sectionIndex, html.indexOf('</b>', sectionIndex));
     const chiefTdIndex = html.indexOf('Chief TD', sectionIndex);
     const endChiefTdIndex = html.indexOf('</small>', sectionIndex);
@@ -28,10 +26,15 @@ function parseSectionFile(eventId, sectionNum, html) {
     section.kFactor = html.slice(kFactorIndex, html.indexOf('&nbsp;', kFactorIndex) - 2);
     const ratingSysIndex = html.indexOf('Rating Sys:', kFactorIndex) + 12;
     section.ratingSys = html.slice(ratingSysIndex, html.indexOf('&nbsp;', ratingSysIndex) - 3);
+    if (section.ratingSys.length > 1) {
+        const spIndex = section.ratingSys.indexOf(' ');
+        if (spIndex !== -1) section.ratingSys = section.ratingSys.slice(0, spIndex);
+    }
     const tournamentTypeIndex = html.indexOf('Tnmt Type:', ratingSysIndex) + 11;
     section.tournamentType = html.slice(tournamentTypeIndex, html.indexOf('<br>', tournamentTypeIndex) - 2);
+    if (section.tournamentType.length > 1) section.tournamentType = section.tournamentType.slice(0, 1);
     const timeControlIndex = html.indexOf('Time Control:', tournamentTypeIndex) + 14;
-    section.timeControl = html.slice(timeControlIndex, html.indexOf('</b>', timeControlIndex));
+    section.timeControl = timeControlIndex === 13 ? null : html.slice(timeControlIndex, html.indexOf('</b>', timeControlIndex));
 
     const startSectionIndex = html.indexOf('<pre>', timeControlIndex);
     const endSectionIndex = html.indexOf('</pre>', startSectionIndex);

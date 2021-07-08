@@ -50,6 +50,8 @@ async function insertClub(clubId) {
             await Member.insertIfNotExists(nextEvent.chiefTd);
             await Event.insertIfNotExists(nextEvent);
 
+            if (event.id === '201011288211' && parseInt(event.section) > 4) event.section = parseInt(event.section) - 6;
+            if (event.id === '200504307281' && parseInt(event.section) === 4) event.section = 3;
             const nextSection = new Section(event.id, event.section);
             await nextSection.load();
             if (nextSection.chiefTd) await Member.insertIfNotExists(nextSection.chiefTd);

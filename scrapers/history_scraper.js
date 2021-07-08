@@ -2,17 +2,17 @@ const fs = require('fs');
 const { CONFIG } = require('../config');
 const { ScraperApi } = require('../api');
 
-async function getHistory(id) {
+async function getHistory(id, page = null) {
     const pageName = 'MbrDtlTnmtHst';
-    const path = `${pageName}.php?${id}`;
-    const fileName = `${pageName}_${id}.html`;
+    const path = page ? `${pageName}.php?${id}.${page}` : `${pageName}.php?${id}`;
+    const fileName = page ? `${pageName}_${id}_${page}.html` : `${pageName}_${id}.html`;
     let file = findHistoryFile(fileName);
 
     if (!file) {
-        const findingMsg = `Finding tournament history page for member ${id}...`;
+        const findingMsg = page ? `Finding tournament history page ${page} for member ${id}...` : `Finding tournament history page for member ${id}...`;
         console.log(findingMsg);
         file = await ScraperApi.get(`${CONFIG.API_URL}?api_key=${CONFIG.API_KEY}&url=${CONFIG.USCHESS_URL}${path}`);
-        const savingMsg = `Saving tournament history page for member ${id}...`;
+        const savingMsg = page ? `Saving tournament history page ${page} for member ${id}...` : `Saving tournament history page for member ${id}...`;
         console.log(savingMsg);
         fs.writeFileSync(`html_pages/histories/${fileName}`, file);
     }
@@ -20,15 +20,15 @@ async function getHistory(id) {
     return file;
 }
 
-async function updateHistory(id) {
+async function updateHistory(id, page = null) {
     const pageName = 'MbrDtlTnmtHst';
-    const path = `${pageName}.php?${id}`;
-    const fileName = `${pageName}_${id}.html`;
+    const path = page ? `${pageName}.php?${id}.${page}` : `${pageName}.php?${id}`;
+    const fileName = page ? `${pageName}_${id}_${page}.html` : `${pageName}_${id}.html`;
 
-    const findingMsg = `Finding updated tournament history page for member ${id}...`;
+    const findingMsg = page ? `Finding tournament history page ${page} for member ${id}...` : `Finding tournament history page for member ${id}...`;
     console.log(findingMsg);
     file = await ScraperApi.get(`${CONFIG.API_URL}?api_key=${CONFIG.API_KEY}&url=${CONFIG.USCHESS_URL}${path}`);
-    const savingMsg = `Saving updated tournament history page for member ${id}...`;
+    const savingMsg = page ? `Saving tournament history page ${page} for member ${id}...` : `Saving tournament history page for member ${id}...`;
     console.log(savingMsg);
     fs.writeFileSync(`html_pages/histories/${fileName}`, file);
 

@@ -1,6 +1,6 @@
-function parseHistoryFile(html) {
-    let refIndex = html.indexOf('<!-- Detail: 1  -->');
-    let index = 1;
+function parseHistoryFile(html, page = 1) {
+    let index = 50 * (page - 1) + 1;
+    let refIndex = html.indexOf(`<!-- Detail: ${index}  -->`);
     const endIndex = html.indexOf('<!-- Resume Tabset Table -->');
 
     const events =  [];
@@ -19,4 +19,20 @@ function parseHistoryFile(html) {
     return events;
 }
 
-module.exports = { parseHistoryFile };
+function countPages(html) {
+    const startIndex = html.indexOf('Show Events:');
+    const endIndex = html.indexOf('</table>', startIndex);
+
+    let nextIndex = startIndex;
+    let pageCount = 0;
+    while (nextIndex < endIndex && nextIndex !== -1) {
+        pageCount++;
+        nextIndex++;
+        nextIndex = html.indexOf('<nobr>', nextIndex);
+    }
+    pageCount--;
+
+    return pageCount;
+}
+
+module.exports = { parseHistoryFile, countPages };
